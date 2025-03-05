@@ -1,0 +1,3 @@
+require "./server"
+
+Server.run

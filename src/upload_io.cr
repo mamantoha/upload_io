@@ -18,13 +18,12 @@ require "http/client"
 #   puts "Uploaded: #{uploaded_total} / #{size} bytes"
 # })
 #
-# client = HTTP::Client.new(URI.parse("http://example.com/upload"))
 # headers = HTTP::Headers{
 #   "Content-Type"   => "application/octet-stream",
 #   "Content-Length" => size.to_s,
 # }
 #
-# response = client.post("http://example.com/upload", headers: headers, body: upload_io)
+# response = HTTP::Client.post("http://example.com/upload", headers: headers, body: upload_io)
 # puts "Upload complete! Response: #{response.status_code}"
 # ```
 class UploadIO < IO
