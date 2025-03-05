@@ -104,5 +104,39 @@ describe UploadIO do
 
       response.body.should eq("size: 0\n")
     end
+
+    describe "callback" do
+      it "triggers callback correctly during upload" do
+        url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}"
+
+        data = Random::Secure.random_bytes(1024 * 16 + 10) # 16KB + 10 bytes
+        chunk_size = 4096
+        size = data.size
+
+        received_chunks = [] of Int32
+        uploaded_total = 0
+
+        callback = ->(uploaded_chunk : Int32) {
+          uploaded_total += uploaded_chunk
+          received_chunks << uploaded_chunk
+        }
+
+        client = HTTP::Client.new(URI.parse(url))
+
+        headers = HTTP::Headers{
+          "Content-Type"   => "application/octet-stream",
+          "Content-Length" => size.to_s,
+        }
+
+        upload_io = UploadIO.new(data, chunk_size, callback)
+        response = client.post(url, headers: headers, body: upload_io)
+
+        response.body.should eq("size: #{size}\n")
+
+        uploaded_total.should eq size
+        # Expect 4 chunks of 4096 bytes and 10 bytes
+        received_chunks.should eq [chunk_size, chunk_size, chunk_size, chunk_size, 10]
+      end
+    end
   end
 end
