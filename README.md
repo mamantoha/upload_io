@@ -1,5 +1,7 @@
 # UploadIO
 
+[![Crystal CI](https://github.com/mamantoha/upload_io/actions/workflows/crystal.yml/badge.svg)](https://github.com/mamantoha/upload_io/actions/workflows/crystal.yml)
+
 TODO: Write a description here
 
 ## Installation
