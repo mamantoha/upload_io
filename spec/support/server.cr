@@ -27,9 +27,9 @@ class Server
         path = File.join(UPLOAD_DIR, filename)
 
         file_size = 0
-        File.open(path, "w") do |f|
+        File.open(path, "w") do |file|
           request.body.try do |body|
-            file_size = IO.copy(body, f)
+            file_size = IO.copy(body, file)
           end
         end
 
