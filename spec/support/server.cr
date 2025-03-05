@@ -3,7 +3,7 @@ require "http/server"
 
 class Server
   CONTENT_DISPOSITION_FILENAME_REGEX = /filename\*?=['"]?(?:UTF-\d['"]*)?([^;\r\n"']*)['"]?;?/xi
-  UPLOAD_DIR                         = "./uploads"
+  UPLOAD_DIR                         = "#{__DIR__}/uploads"
 
   def self.run(address = "0.0.0.0", port = 9909)
     Dir.mkdir_p(UPLOAD_DIR)
