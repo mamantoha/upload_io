@@ -5,7 +5,7 @@ require "http/client"
 
 # It supports chunked uploads with a built-in progress callback.
 #
-# ```crystal
+# ```
 # require "upload_io"
 # require "http/client"
 #
