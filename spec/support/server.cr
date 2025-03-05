@@ -5,7 +5,7 @@ class Server
   CONTENT_DISPOSITION_FILENAME_REGEX = /filename\*?=['"]?(?:UTF-\d['"]*)?([^;\r\n"']*)['"]?;?/xi
   UPLOAD_DIR                         = "#{__DIR__}/uploads"
 
-  def self.run(address = "0.0.0.0", port = 9909)
+  def self.run(address = "127.0.0.1", port = 9909)
     Dir.mkdir_p(UPLOAD_DIR)
 
     server = HTTP::Server.new do |context|
