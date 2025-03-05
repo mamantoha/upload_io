@@ -1,7 +1,32 @@
 require "http/client"
 
-# UploadIO streams data in chunks and supports `HTTP::Client::BodyType`
-# It provides a callback function for tracking upload progress.
+# `UploadIO` instances can be used directly as the request body in `HTTP::Client` requests.
+# Since it implements the `IO` interface, `HTTP::Client` can read from it just like any other `IO` object.
+
+# It supports chunked uploads with a built-in progress callback.
+#
+# ```crystal
+# require "upload_io"
+# require "http/client"
+#
+# file = File.open("/path/to/file")
+# size = file.size
+# uploaded_total = 0
+#
+# upload_io = UploadIO.new(file, 4096, ->(uploaded_chunk : Int32) {
+#   uploaded_total += uploaded_chunk
+#   puts "Uploaded: #{uploaded_total} / #{size} bytes"
+# })
+#
+# client = HTTP::Client.new(URI.parse("http://example.com/upload"))
+# headers = HTTP::Headers{
+#   "Content-Type"   => "application/octet-stream",
+#   "Content-Length" => size.to_s,
+# }
+#
+# response = client.post("http://example.com/upload", headers: headers, body: upload_io)
+# puts "Upload complete! Response: #{response.status_code}"
+# ```
 class UploadIO < IO
   CHUNK_SIZE = 4096
 
@@ -43,7 +68,10 @@ class UploadIO < IO
   # This method is called automatically by `HTTP::Client` when sending data.
   # It reads up to `chunk_size` bytes and updates the upload progress.
   #
-  # Returns the number of bytes actually written (or 0 if done).
+  # Returns the number of bytes that will be sent to the server (not the total sent bytes).
+  #
+  # Since `UploadIO` only provides data to `HTTP::Client`,
+  # we can only track the amount of data read and not the actual bytes transmitted to the server.
   def read(slice : Bytes) : Int32
     return 0 unless @data
 
