@@ -27,6 +27,8 @@ require "http/client"
 # puts "Upload complete! Response: #{response.status_code}"
 # ```
 class UploadIO < IO
+  VERSION = {{ `shards version #{__DIR__}`.chomp.stringify }}
+
   CHUNK_SIZE = 4096
 
   # Tracks the total bytes uploaded so far.
