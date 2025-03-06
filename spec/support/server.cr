@@ -20,8 +20,8 @@ class Server
           if content_disposition && (match_data = content_disposition.match(CONTENT_DISPOSITION_FILENAME_REGEX))
             match_data[1]
           else
-            suffix = request_content_type ? MIME.extensions(request_content_type).first? || "bin" : "bin"
-            "uploaded_file.#{suffix}"
+            suffix = request_content_type ? MIME.extensions(request_content_type).first? || ".bin" : ".bin"
+            "uploaded_file#{suffix}"
           end
 
         path = File.join(UPLOAD_DIR, filename)
