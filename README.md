@@ -1,6 +1,8 @@
 # UploadIO
 
 [![Crystal CI](https://github.com/mamantoha/upload_io/actions/workflows/crystal.yml/badge.svg)](https://github.com/mamantoha/upload_io/actions/workflows/crystal.yml)
+[![GitHub release](https://img.shields.io/github/release/mamantoha/upload_io.svg)](https://github.com/mamantoha/upload_io/releases)
+[![License](https://img.shields.io/github/license/mamantoha/upload_io.svg)](https://github.com/mamantoha/upload_io/blob/master/LICENSE)
 
 `UploadIO` is a streaming upload library written in Crystal that integrates with `HTTP::Client`.
 
