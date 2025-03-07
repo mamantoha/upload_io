@@ -12,32 +12,35 @@ class Server
       request = context.request
       response = context.response
 
-      if request.method == "POST"
-        request_content_type = request.headers["Content-Type"]?
-        content_disposition = request.headers["Content-Disposition"]?
+      if request.path == "/upload"
+        if request.method == "POST"
+          request_content_type = request.headers["Content-Type"]?
+          content_disposition = request.headers["Content-Disposition"]?
 
-        filename =
-          if content_disposition && (match_data = content_disposition.match(CONTENT_DISPOSITION_FILENAME_REGEX))
-            match_data[1]
-          else
-            suffix = request_content_type ? MIME.extensions(request_content_type).first? || ".bin" : ".bin"
-            "uploaded_file#{suffix}"
+          filename =
+            if content_disposition && (match_data = content_disposition.match(CONTENT_DISPOSITION_FILENAME_REGEX))
+              match_data[1]
+            else
+              suffix = request_content_type ? MIME.extensions(request_content_type).first? || ".bin" : ".bin"
+              "uploaded_file#{suffix}"
+            end
+
+          path = File.join(UPLOAD_DIR, filename)
+
+          file_size = 0
+          File.open(path, "w") do |file|
+            request.body.try do |body|
+              file_size = IO.copy(body, file)
+            end
           end
 
-        path = File.join(UPLOAD_DIR, filename)
-
-        file_size = 0
-        File.open(path, "w") do |file|
-          request.body.try do |body|
-            file_size = IO.copy(body, file)
-          end
+          response.status = HTTP::Status::OK
+          response.puts "size: #{file_size}"
+        else
+          response.respond_with_status(:method_not_allowed, "Method Not Allowed")
         end
-
-        response.status = HTTP::Status::OK
-        response.puts "size: #{file_size}"
       else
-        response.status = HTTP::Status::METHOD_NOT_ALLOWED
-        response.puts "Method Not Allowed"
+        response.respond_with_status(:not_found, "Not Found")
       end
     end
 

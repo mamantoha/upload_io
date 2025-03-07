@@ -3,7 +3,7 @@ require "../spec_helper"
 describe UploadIO do
   context HTTP::Client do
     it "uploads bytes" do
-      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}"
+      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}/upload"
 
       data = Random::Secure.random_bytes(7_000_000).to_slice
       size = data.size
@@ -20,7 +20,7 @@ describe UploadIO do
     end
 
     it "uploads a string" do
-      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}"
+      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}/upload"
 
       data = "Hello, UploadIO!"
       size = data.bytesize
@@ -37,7 +37,7 @@ describe UploadIO do
     end
 
     it "uploads a file" do
-      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}"
+      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}/upload"
 
       tempfile = File.tempfile("upload_test")
       size = 1_000_000
@@ -61,7 +61,7 @@ describe UploadIO do
     end
 
     it "uploads an empty file using Tempfile" do
-      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}"
+      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}/upload"
 
       tempfile = File.tempfile("upload_test")
       size = tempfile.size
@@ -82,7 +82,7 @@ describe UploadIO do
     end
 
     it "uploads nil (should do nothing)" do
-      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}"
+      url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}/upload"
 
       headers = HTTP::Headers{
         "Content-Type"   => "application/octet-stream",
@@ -97,7 +97,7 @@ describe UploadIO do
 
     describe "callback" do
       it "triggers callback correctly during upload" do
-        url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}"
+        url = "http://#{SERVER_ADDRESS}:#{SERVER_PORT}/upload"
 
         data = Random::Secure.random_bytes(1024 * 16 + 10) # 16KB + 10 bytes
         chunk_size = 4096
