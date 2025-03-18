@@ -6,15 +6,9 @@ describe UploadIO do
 
     it "uploads bytes" do
       data = Random::Secure.random_bytes(7_000_000).to_slice
-      size = data.size
-
-      headers = HTTP::Headers{
-        "Content-Type"   => "application/octet-stream",
-        "Content-Length" => size.to_s,
-      }
 
       upload_io = UploadIO.new(data)
-      response = HTTP::Client.post(upload_url, headers: headers, body: upload_io)
+      response = HTTP::Client.post(upload_url, body: upload_io)
 
       response.body.should eq("size: 7000000\n")
     end
@@ -23,13 +17,8 @@ describe UploadIO do
       data = "Hello, UploadIO!"
       size = data.bytesize
 
-      headers = HTTP::Headers{
-        "Content-Type"   => "text/plain",
-        "Content-Length" => size.to_s,
-      }
-
       upload_io = UploadIO.new(data)
-      response = HTTP::Client.post(upload_url, headers: headers, body: upload_io)
+      response = HTTP::Client.post(upload_url, body: upload_io)
 
       response.body.should eq("size: #{size}\n")
     end
@@ -42,8 +31,6 @@ describe UploadIO do
       tempfile.rewind
 
       headers = HTTP::Headers{
-        "Content-Type"        => "application/octet-stream",
-        "Content-Length"      => size.to_s,
         "Content-Disposition" => "attachment; filename=tempfile.bin",
       }
 
@@ -62,7 +49,6 @@ describe UploadIO do
 
       headers = HTTP::Headers{
         "Content-Type"        => "text/plain",
-        "Content-Length"      => size.to_s,
         "Content-Disposition" => "attachment; filename=empty_file.txt",
       }
 
@@ -76,13 +62,8 @@ describe UploadIO do
     end
 
     it "uploads nil (should do nothing)" do
-      headers = HTTP::Headers{
-        "Content-Type"   => "application/octet-stream",
-        "Content-Length" => "0",
-      }
-
       upload_io = UploadIO.new(nil)
-      response = HTTP::Client.post(upload_url, headers: headers, body: upload_io)
+      response = HTTP::Client.post(upload_url, body: upload_io)
 
       response.body.should eq("size: 0\n")
     end
