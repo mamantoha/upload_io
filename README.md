@@ -46,12 +46,7 @@ end
 
 upload_io = UploadIO.new(file, 4096, progress_tracker)
 
-headers = HTTP::Headers{
-  "Content-Type"   => "application/octet-stream",
-  "Content-Length" => size.to_s
-}
-
-response = HTTP::Client.post("http://example.com/upload", headers: headers, body: upload_io)
+response = HTTP::Client.post("http://example.com/upload", body: upload_io)
 
 total_time = (Time.monotonic - start_time).total_seconds
 puts "Upload complete! Response: #{response.status_code} in #{total_time.round(2)} seconds"
