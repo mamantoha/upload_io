@@ -69,6 +69,7 @@ Upload complete! Response: 200 in 2.50 seconds
 `UploadIO` instances can be used directly as the request form data in [crest](https://github.com/mamantoha/crest) requests.
 
 ```crystal
+require "upload_io"
 require "crest"
 
 file = File.open("/path/to/file")
