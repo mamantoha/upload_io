@@ -64,6 +64,19 @@ Uploaded: 1048576 / 1048576 bytes (100.0%) in 2.50s
 Upload complete! Response: 200 in 2.50 seconds
 ```
 
+### crest
+
+`UploadIO` instances can be used directly as the request form data in [crest](https://github.com/mamantoha/crest) requests.
+
+```crystal
+require "crest"
+
+file = File.open("/path/to/file")
+
+upload_io = UploadIO.new(file)
+response = Crest.post("http://example.com/upload", form: upload_io)
+```
+
 ## Contributing
 
 1. Fork it (<https://github.com/mamantoha/upload_io/fork>)
