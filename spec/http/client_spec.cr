@@ -45,7 +45,6 @@ describe UploadIO do
 
     it "uploads an empty file using Tempfile" do
       tempfile = File.tempfile("upload_test")
-      size = tempfile.size
 
       headers = HTTP::Headers{
         "Content-Type"        => "text/plain",
