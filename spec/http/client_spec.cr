@@ -87,6 +87,15 @@ describe UploadIO do
       response.body.should eq("size: 0\n")
     end
 
+    it "handle errors" do
+      data = Random::Secure.random_bytes(100).to_slice
+
+      upload_io = UploadIO.new(data)
+      response = HTTP::Client.post("http://#{SERVER_ADDRESS}:#{SERVER_PORT}/", body: upload_io)
+
+      response.status_code.should eq(404)
+    end
+
     describe "callback" do
       it "triggers callback correctly during upload" do
         data = Random::Secure.random_bytes(1024 * 16 + 10) # 16KB + 10 bytes

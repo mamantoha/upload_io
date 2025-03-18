@@ -45,6 +45,7 @@ class UploadIO < IO
 
     @is_io = false
     @size = 0
+    @rewound = false
 
     case @data
     in IO
@@ -74,6 +75,8 @@ class UploadIO < IO
   # Since `UploadIO` only provides data to `HTTP::Client`,
   # we can only track the amount of data read and not the actual bytes transmitted to the server.
   def read(slice : Bytes) : Int32
+    return 0 if @rewound
+
     return 0 unless @data
 
     bytes_to_send = @chunk_size
@@ -105,5 +108,11 @@ class UploadIO < IO
   # `UploadIO` is read-only, so `write` does nothing.
   def write(slice : Bytes) : Nil
     nil
+  end
+
+  def rewind
+    @offset = 0
+    @uploaded = 0
+    @rewound = true
   end
 end
