@@ -42,7 +42,7 @@ describe Crest do
     upload_io = UploadIO.new(data)
 
     expect_raises Crest::RequestFailed, "HTTP status code 404: Not Found" do
-      response = Crest.post("http://#{SERVER_ADDRESS}:#{SERVER_PORT}/", form: upload_io)
+      Crest.post("http://#{SERVER_ADDRESS}:#{SERVER_PORT}/", form: upload_io)
     end
   end
 end
