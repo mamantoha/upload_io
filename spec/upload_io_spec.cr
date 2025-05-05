@@ -86,4 +86,87 @@ describe UploadIO do
 
     calls.should eq [256, 256, 256, 256]
   end
+
+  describe "cancel functionality" do
+    it "cancels upload when should_cancel returns true" do
+      data = Bytes.new(8192) { 1_u8 }
+      uploaded_total = 0
+      chunks = [] of Int32
+      read_count = 0
+
+      upload_io = UploadIO.new(
+        data,
+        4096,
+        ->(chunk_size : Int32) {
+          uploaded_total += chunk_size
+          chunks << chunk_size
+        },
+        ->(nil : Nil) {
+          read_count += 1
+          read_count > 1 # Cancel after first chunk
+        }
+      )
+
+      buffer = Bytes.new(4096)
+
+      while (bytes_read = upload_io.read(buffer)) > 0
+        buffer[0, bytes_read]
+      end
+
+      upload_io.uploaded.should eq 4096
+      uploaded_total.should eq 4096
+      chunks.should eq [4096]
+    end
+
+    it "continues upload when should_cancel returns false" do
+      data = Bytes.new(8192) { 1_u8 }
+      uploaded_total = 0
+      chunks = [] of Int32
+
+      upload_io = UploadIO.new(
+        data,
+        4096,
+        ->(chunk_size : Int32) {
+          uploaded_total += chunk_size
+          chunks << chunk_size
+        },
+        ->(nil : Nil) { false }
+      )
+
+      buffer = Bytes.new(4096)
+
+      while (bytes_read = upload_io.read(buffer)) > 0
+        buffer[0, bytes_read]
+      end
+
+      upload_io.uploaded.should eq 8192
+      uploaded_total.should eq 8192
+      chunks.should eq [4096, 4096]
+    end
+
+    it "handles nil should_cancel callback" do
+      data = Bytes.new(8192) { 1_u8 }
+      uploaded_total = 0
+      chunks = [] of Int32
+
+      upload_io = UploadIO.new(
+        data,
+        4096,
+        ->(chunk_size : Int32) {
+          uploaded_total += chunk_size
+          chunks << chunk_size
+        }
+      )
+
+      buffer = Bytes.new(4096)
+
+      while (bytes_read = upload_io.read(buffer)) > 0
+        buffer[0, bytes_read]
+      end
+
+      upload_io.uploaded.should eq 8192
+      uploaded_total.should eq 8192
+      chunks.should eq [4096, 4096]
+    end
+  end
 end
