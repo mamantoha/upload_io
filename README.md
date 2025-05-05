@@ -44,7 +44,13 @@ progress_tracker = ->(uploaded_chunk : Int32) do
   puts "Uploaded: #{uploaded_total} / #{size} bytes (#{percentage}%) in #{elapsed_time.round(2)}s"
 end
 
-upload_io = UploadIO.new(file, 4096, progress_tracker)
+# Using should_cancel callback to stop upload after 5 seconds
+upload_io = UploadIO.new(
+  file,
+  4096,
+  progress_tracker,
+  ->(nil : Nil) { (Time.monotonic - start_time).total_seconds > 5 }
+)
 
 response = HTTP::Client.post("http://example.com/upload", body: upload_io)
 
@@ -63,6 +69,18 @@ Uploaded: 1044480 / 1048576 bytes (99.61%) in 2.48s
 Uploaded: 1048576 / 1048576 bytes (100.0%) in 2.50s
 Upload complete! Response: 200 in 2.50 seconds
 ```
+
+The library provides two ways to cancel an upload:
+
+1. Using `should_cancel` callback:
+   - Called before each chunk is read
+   - Return `true` to cancel the upload
+   - Useful for time-based or condition-based cancellation
+
+2. Using `cancel` method:
+   - Immediately stops the upload
+   - Closes the underlying IO if it's an IO source
+   - Useful for external cancellation (e.g., from another fiber)
 
 ### crest
 
