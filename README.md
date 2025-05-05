@@ -9,7 +9,7 @@
 `UploadIO` instances can be used directly as the request body in `HTTP::Client` requests.
 Since it implements the `IO` interface, `HTTP::Client` can read from it just like any other `IO` object.
 
-It supports chunked uploads with a built-in progress callback.
+It supports chunked uploads with a built-in progress callback and provides flexible upload cancellation through either a callback or direct method call.
 
 ## Installation
 
