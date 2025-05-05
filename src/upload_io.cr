@@ -42,7 +42,7 @@ class UploadIO < IO
   getter should_cancel : Proc(Nil, Bool)?
 
   # Returns true if the upload has been cancelled
-  getter cancelled : Bool = false
+  getter? cancelled : Bool = false
 
   # `data` - the upload data source
   # `chunk_size` - the size of each chunk to be read
@@ -79,7 +79,7 @@ class UploadIO < IO
   # - If the data source is an IO, it will be closed
   # - The upload cannot be resumed
   def cancel
-    return if @cancelled
+    return if cancelled?
 
     @cancelled = true
 
@@ -98,7 +98,7 @@ class UploadIO < IO
   # Since `UploadIO` only provides data to `HTTP::Client`,
   # we can only track the amount of data read and not the actual bytes transmitted to the server.
   def read(slice : Bytes) : Int32
-    return 0 if @rewound || @cancelled
+    return 0 if @rewound || cancelled?
 
     if should_cancel = @should_cancel
       return 0 if should_cancel.call(nil)
