@@ -101,7 +101,7 @@ describe UploadIO do
           uploaded_total += chunk_size
           chunks << chunk_size
         },
-        ->(_nil : Nil) {
+        -> {
           read_count += 1
           read_count > 1 # Cancel after first chunk
         }
@@ -130,7 +130,7 @@ describe UploadIO do
           uploaded_total += chunk_size
           chunks << chunk_size
         },
-        ->(_nil : Nil) { false }
+        -> { false }
       )
 
       buffer = Bytes.new(4096)

@@ -39,7 +39,7 @@ class UploadIO < IO
 
   # Optional callback function that determines if the upload should be cancelled.
   # Return true to cancel the upload.
-  getter should_cancel : Proc(Nil, Bool)?
+  getter should_cancel : Proc(Bool)?
 
   # Returns true if the upload has been cancelled
   getter? cancelled : Bool = false
@@ -48,7 +48,7 @@ class UploadIO < IO
   # `chunk_size` - the size of each chunk to be read
   # `on_progress` - optional callback to track progress
   # `should_cancel` - optional callback to control upload cancellation
-  def initialize(@data : HTTP::Client::BodyType, @chunk_size : Int32, @on_progress : Proc(Int32, Nil)? = nil, @should_cancel : Proc(Nil, Bool)? = nil)
+  def initialize(@data : HTTP::Client::BodyType, @chunk_size : Int32, @on_progress : Proc(Int32, Nil)? = nil, @should_cancel : Proc(Bool)? = nil)
     super()
 
     @is_io = false
@@ -70,7 +70,7 @@ class UploadIO < IO
     @offset = 0_i64 # Track position (only used for Bytes or String)
   end
 
-  def self.new(data : HTTP::Client::BodyType, on_progress : Proc(Int32, Nil)? = nil, should_cancel : Proc(Nil, Bool)? = nil)
+  def self.new(data : HTTP::Client::BodyType, on_progress : Proc(Int32, Nil)? = nil, should_cancel : Proc(Bool)? = nil)
     new(data, CHUNK_SIZE, on_progress, should_cancel)
   end
 
@@ -101,7 +101,7 @@ class UploadIO < IO
     return 0 if @rewound || cancelled?
 
     if should_cancel = @should_cancel
-      return 0 if should_cancel.call(nil)
+      return 0 if should_cancel.call
     end
 
     return 0 unless @data

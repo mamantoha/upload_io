@@ -49,7 +49,7 @@ upload_io = UploadIO.new(
   file,
   4096,
   progress_tracker,
-  ->(nil : Nil) { (Time.monotonic - start_time).total_seconds > 5 }
+  ->{ (Time.monotonic - start_time).total_seconds > 5 }
 )
 
 response = HTTP::Client.post("http://example.com/upload", body: upload_io)
