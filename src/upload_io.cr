@@ -37,15 +37,24 @@ class UploadIO < IO
   # Optional callback function that receives the size of each uploaded chunk.
   getter on_progress : Proc(Int32, Nil)?
 
+  # Optional callback function that determines if the upload should be cancelled.
+  # Return true to cancel the upload.
+  getter should_cancel : Proc(Bool)?
+
+  # Returns true if the upload has been cancelled
+  getter? cancelled : Bool = false
+
   # `data` - the upload data source
   # `chunk_size` - the size of each chunk to be read
   # `on_progress` - optional callback to track progress
-  def initialize(@data : HTTP::Client::BodyType, @chunk_size : Int32, @on_progress : Proc(Int32, Nil)? = nil)
+  # `should_cancel` - optional callback to control upload cancellation
+  def initialize(@data : HTTP::Client::BodyType, @chunk_size : Int32, @on_progress : Proc(Int32, Nil)? = nil, @should_cancel : Proc(Bool)? = nil)
     super()
 
     @is_io = false
     @size = 0
     @rewound = false
+    @cancelled = false
 
     case @data
     in IO
@@ -61,8 +70,22 @@ class UploadIO < IO
     @offset = 0_i64 # Track position (only used for Bytes or String)
   end
 
-  def self.new(data : HTTP::Client::BodyType, on_progress : Proc(Int32, Nil)? = nil)
-    new(data, CHUNK_SIZE, on_progress)
+  def self.new(data : HTTP::Client::BodyType, on_progress : Proc(Int32, Nil)? = nil, should_cancel : Proc(Bool)? = nil)
+    new(data, CHUNK_SIZE, on_progress, should_cancel)
+  end
+
+  # Cancels the upload process. After calling this method:
+  # - Subsequent reads will return 0 bytes
+  # - If the data source is an IO, it will be closed
+  # - The upload cannot be resumed
+  def cancel
+    return if cancelled?
+
+    @cancelled = true
+
+    if @is_io && @data.is_a?(IO)
+      @data.as(IO).close
+    end
   end
 
   # Reads the next chunk of data and copies it into the provided buffer.
@@ -75,7 +98,11 @@ class UploadIO < IO
   # Since `UploadIO` only provides data to `HTTP::Client`,
   # we can only track the amount of data read and not the actual bytes transmitted to the server.
   def read(slice : Bytes) : Int32
-    return 0 if @rewound
+    return 0 if @rewound || cancelled?
+
+    if should_cancel = @should_cancel
+      return 0 if should_cancel.call
+    end
 
     return 0 unless @data
 
