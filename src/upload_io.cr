@@ -3,7 +3,8 @@ require "http/client"
 # `UploadIO` instances can be used directly as the request body in `HTTP::Client` requests.
 # Since it implements the `IO` interface, `HTTP::Client` can read from it just like any other `IO` object.
 
-# It supports chunked uploads with a built-in progress callback.
+# `UploadIO` supports chunked uploads with a built-in progress callback
+# and provides upload cancellation through either a callback or direct method call.
 #
 # ```
 # require "upload_io"
@@ -55,6 +56,16 @@ class UploadIO < IO
 
   # Optional callback function that determines if the upload should be cancelled.
   # Return true to cancel the upload.
+  #
+  # ```
+  # file = File.open("/path/to/file")
+  # start_time = Time.monotonic
+  #
+  # # Using should_cancel callback to stop upload after 5 seconds
+  # upload_io = UploadIO.new(file, nil, ->{ (Time.monotonic - start_time).total_seconds > 5 })
+  #
+  # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
+  # ```
   getter should_cancel : Proc(Bool)?
 
   # Returns true if the upload has been cancelled
