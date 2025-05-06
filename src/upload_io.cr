@@ -62,7 +62,7 @@ class UploadIO < IO
   # start_time = Time.monotonic
   #
   # # Using should_cancel callback to stop upload after 5 seconds
-  # upload_io = UploadIO.new(file, nil, ->{ (Time.monotonic - start_time).total_seconds > 5 })
+  # upload_io = UploadIO.new(file, nil, -> { (Time.monotonic - start_time).total_seconds > 5 })
   #
   # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
   # ```
