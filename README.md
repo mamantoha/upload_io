@@ -9,7 +9,15 @@
 `UploadIO` instances can be used directly as the request body in `HTTP::Client` requests.
 Since it implements the `IO` interface, `HTTP::Client` can read from it just like any other `IO` object.
 
-It supports chunked uploads with a built-in progress callback and provides flexible upload cancellation through either a callback or direct method call.
+Features:
+
+- Streaming uploads with configurable chunk size
+- Progress tracking through callback functions
+- Upload cancellation support via callback or direct method call
+- Pause/Resume functionality for upload control
+- Seamless integration with Crystal's `HTTP::Client`
+- Support for various input types (`IO`, `Byte`, `String`)
+- Real-time upload progress monitoring
 
 ## Installation
 
