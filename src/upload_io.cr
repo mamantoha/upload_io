@@ -35,6 +35,22 @@ class UploadIO < IO
   getter uploaded : Int64 = 0
 
   # Optional callback function that receives the size of each uploaded chunk.
+  #
+  # ```
+  # file = File.open("/path/to/file")
+  # size = file.size
+  # uploaded_total = 0
+  #
+  # # Progress tracking callback
+  # progress_tracker = ->(uploaded_chunk : Int32) do
+  #   uploaded_total += uploaded_chunk
+  #   puts "Uploaded: #{uploaded_total} / #{size} bytes"
+  # end
+  #
+  # upload_io = UploadIO.new(file, progress_tracker)
+  #
+  # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
+  # ```
   getter on_progress : Proc(Int32, Nil)?
 
   # Optional callback function that determines if the upload should be cancelled.
