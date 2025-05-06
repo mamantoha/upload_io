@@ -48,7 +48,12 @@ class UploadIO < IO
   # `chunk_size` - the size of each chunk to be read
   # `on_progress` - optional callback to track progress
   # `should_cancel` - optional callback to control upload cancellation
-  def initialize(@data : HTTP::Client::BodyType, @chunk_size : Int32, @on_progress : Proc(Int32, Nil)? = nil, @should_cancel : Proc(Bool)? = nil)
+  def initialize(
+    @data : HTTP::Client::BodyType,
+    @chunk_size : Int32,
+    @on_progress : Proc(Int32, Nil)? = nil,
+    @should_cancel : Proc(Bool)? = nil,
+  )
     super()
 
     @is_io = false
@@ -70,7 +75,11 @@ class UploadIO < IO
     @offset = 0_i64 # Track position (only used for Bytes or String)
   end
 
-  def self.new(data : HTTP::Client::BodyType, on_progress : Proc(Int32, Nil)? = nil, should_cancel : Proc(Bool)? = nil)
+  def self.new(
+    data : HTTP::Client::BodyType,
+    on_progress : Proc(Int32, Nil)? = nil,
+    should_cancel : Proc(Bool)? = nil,
+  )
     new(data, CHUNK_SIZE, on_progress, should_cancel)
   end
 
