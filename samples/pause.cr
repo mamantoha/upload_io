@@ -16,7 +16,6 @@ end
 url = "http://127.0.0.1:9909/upload"
 file = File.open(path)
 mime = MIME.from_filename(path)
-size = file.size
 
 chunk_size = 4_096
 start_time = Time.monotonic
