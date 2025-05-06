@@ -109,7 +109,7 @@ class UploadIO < IO
   def read(slice : Bytes) : Int32
     return 0 if @rewound || cancelled?
 
-    if should_cancel = @should_cancel
+    @should_cancel.try do |should_cancel|
       return 0 if should_cancel.call
     end
 
