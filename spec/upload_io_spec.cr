@@ -231,4 +231,59 @@ describe UploadIO do
       end
     end
   end
+
+  describe "pause/resume functionality" do
+    it "pauses and resumes upload" do
+      # Initialize test data and trackers
+      data = Bytes.new(8192) { 1_u8 }
+      uploaded_total = 0
+      chunks = [] of Int32
+      read_channel = Channel(Nil).new
+
+      # Create UploadIO with 4KB chunks and progress tracking
+      upload_io = UploadIO.new(
+        data,
+        4096,
+        ->(chunk_size : Int32) {
+          uploaded_total += chunk_size
+          chunks << chunk_size
+        }
+      )
+
+      buffer = Bytes.new(4096)
+
+      # Read first chunk (4KB) - this should complete immediately
+      bytes_read = upload_io.read(buffer)
+      bytes_read.should eq 4096
+      chunks.should eq [4096] # Verify first chunk was uploaded
+
+      # Pause the upload - subsequent reads will block until resume
+      upload_io.pause
+      upload_io.paused?.should be_true
+
+      # Start reading the second chunk in a separate fiber
+      # This read will block because the upload is paused
+      spawn do
+        upload_io.read(buffer)
+        read_channel.send(nil) # Signal when read completes
+      end
+
+      # Give the fiber a moment to start and verify it's blocked
+      sleep 0.1.seconds
+      chunks.should eq [4096] # Verify no new chunks were uploaded while paused
+
+      # Resume the upload - this will unblock the waiting read
+      upload_io.resume
+      upload_io.paused?.should be_false
+
+      # Wait for the blocked read to complete
+      read_channel.receive
+      chunks.should eq [4096, 4096] # Verify second chunk was uploaded after resume
+
+      # Verify final state
+      upload_io.uploaded.should eq 8192
+      uploaded_total.should eq 8192
+      chunks.should eq [4096, 4096]
+    end
+  end
 end

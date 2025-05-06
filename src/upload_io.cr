@@ -71,6 +71,9 @@ class UploadIO < IO
   # Returns true if the upload has been cancelled
   getter? cancelled : Bool = false
 
+  # Returns true if the upload is currently paused
+  getter? paused : Bool = false
+
   # Creates a new `UploadIO` with given arguments.
   #
   # - `data` - the upload data source
@@ -89,6 +92,7 @@ class UploadIO < IO
     @size = 0
     @rewound = false
     @cancelled = false
+    @paused = false
 
     case @data
     in IO
@@ -126,6 +130,19 @@ class UploadIO < IO
     end
   end
 
+  # Pauses the upload process. While paused:
+  # - Subsequent reads will block until `resume` is called
+  # - The upload can be resumed using the `resume` method
+  def pause
+    @paused = true
+  end
+
+  # Resumes a paused upload. After calling this method:
+  # - Subsequent reads will continue from where they left off
+  def resume
+    @paused = false
+  end
+
   # Reads the next chunk of data and copies it into the provided buffer.
   #
   # This method is called automatically by `HTTP::Client` when sending data.
@@ -143,6 +160,10 @@ class UploadIO < IO
     end
 
     return 0 unless @data
+
+    while paused?
+      sleep 0.1.seconds
+    end
 
     bytes_to_send = @chunk_size
 
