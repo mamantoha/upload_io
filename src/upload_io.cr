@@ -44,10 +44,12 @@ class UploadIO < IO
   # Returns true if the upload has been cancelled
   getter? cancelled : Bool = false
 
-  # `data` - the upload data source
-  # `chunk_size` - the size of each chunk to be read
-  # `on_progress` - optional callback to track progress
-  # `should_cancel` - optional callback to control upload cancellation
+  # Creates a new `UploadIO` with given arguments.
+  #
+  # - `data` - the upload data source
+  # - `chunk_size` - the size of each chunk to be read
+  # - `on_progress` - optional callback to track progress
+  # - `should_cancel` - optional callback to control upload cancellation
   def initialize(
     @data : HTTP::Client::BodyType,
     @chunk_size : Int32,
