@@ -5,11 +5,9 @@ describe UploadIO do
   it "uploads data from Bytes" do
     data = Bytes.new(8192) { 1_u8 }
 
-    uploaded_total = 0
     chunks = [] of Int32
 
     upload_io = UploadIO.new(data, 4096, ->(chunk_size : Int32) {
-      uploaded_total += chunk_size
       chunks << chunk_size
     })
 
@@ -20,16 +18,15 @@ describe UploadIO do
     end
 
     upload_io.uploaded.should eq 8192
-    uploaded_total.should eq 8192
     chunks.should eq [4096, 4096]
   end
 
   it "uploads data from String" do
     data = "Hello, World! This is a test string for UploadIO."
-    uploaded_total = 0
+    chunks = [] of Int32
 
     progress_tracker = ->(chunk_size : Int32) do
-      uploaded_total += chunk_size
+      chunks << chunk_size
     end
 
     upload_io = UploadIO.new(data, 10, progress_tracker)
@@ -41,15 +38,15 @@ describe UploadIO do
     end
 
     upload_io.uploaded.should eq data.bytesize
-    uploaded_total.should eq data.bytesize
+    chunks.should eq [10, 10, 10, 10, 9]
   end
 
   it "uploads data from IO" do
     io = IO::Memory.new("This is a streamed test.")
-    uploaded_total = 0
+    chunks = [] of Int32
 
     upload_io = UploadIO.new(io, 8, ->(chunk_size : Int32) {
-      uploaded_total += chunk_size
+      chunks << chunk_size
     })
 
     buffer = Bytes.new(8)
@@ -59,7 +56,7 @@ describe UploadIO do
     end
 
     upload_io.uploaded.should eq io.to_s.bytesize
-    uploaded_total.should eq io.to_s.bytesize
+    chunks.should eq [8, 8, 8, 0]
   end
 
   it "handles Nil input gracefully" do
@@ -111,17 +108,12 @@ describe UploadIO do
   describe "cancel functionality" do
     it "cancels upload when should_cancel returns true" do
       data = Bytes.new(8192) { 1_u8 }
-      uploaded_total = 0
-      chunks = [] of Int32
       read_count = 0
 
       upload_io = UploadIO.new(
         data,
         4096,
-        ->(chunk_size : Int32) {
-          uploaded_total += chunk_size
-          chunks << chunk_size
-        },
+        nil,
         -> {
           read_count += 1
           read_count > 1 # Cancel after first chunk
@@ -135,24 +127,12 @@ describe UploadIO do
       end
 
       upload_io.uploaded.should eq 4096
-      uploaded_total.should eq 4096
-      chunks.should eq [4096]
     end
 
     it "continues upload when should_cancel returns false" do
       data = Bytes.new(8192) { 1_u8 }
-      uploaded_total = 0
-      chunks = [] of Int32
 
-      upload_io = UploadIO.new(
-        data,
-        4096,
-        ->(chunk_size : Int32) {
-          uploaded_total += chunk_size
-          chunks << chunk_size
-        },
-        -> { false }
-      )
+      upload_io = UploadIO.new(data, 4096, nil, -> { false })
 
       buffer = Bytes.new(4096)
 
@@ -161,20 +141,16 @@ describe UploadIO do
       end
 
       upload_io.uploaded.should eq 8192
-      uploaded_total.should eq 8192
-      chunks.should eq [4096, 4096]
     end
 
     it "handles nil should_cancel callback" do
       data = Bytes.new(8192) { 1_u8 }
-      uploaded_total = 0
       chunks = [] of Int32
 
       upload_io = UploadIO.new(
         data,
         4096,
         ->(chunk_size : Int32) {
-          uploaded_total += chunk_size
           chunks << chunk_size
         }
       )
@@ -186,21 +162,18 @@ describe UploadIO do
       end
 
       upload_io.uploaded.should eq 8192
-      uploaded_total.should eq 8192
       chunks.should eq [4096, 4096]
     end
 
     describe "cancel method" do
       it "stops upload after cancel is called" do
         data = Bytes.new(8192) { 1_u8 }
-        uploaded_total = 0
         chunks = [] of Int32
 
         upload_io = UploadIO.new(
           data,
           4096,
           ->(chunk_size : Int32) {
-            uploaded_total += chunk_size
             chunks << chunk_size
           }
         )
@@ -219,21 +192,13 @@ describe UploadIO do
         bytes_read.should eq 0
 
         upload_io.uploaded.should eq 4096
-        uploaded_total.should eq 4096
         chunks.should eq [4096]
       end
 
       it "closes IO source when cancelled" do
         io = IO::Memory.new("This is a streamed test.")
-        uploaded_total = 0
 
-        upload_io = UploadIO.new(
-          io,
-          8,
-          ->(chunk_size : Int32) {
-            uploaded_total += chunk_size
-          }
-        )
+        upload_io = UploadIO.new(io, 8)
 
         buffer = Bytes.new(8)
 
@@ -248,7 +213,6 @@ describe UploadIO do
         io.closed?.should be_true
 
         upload_io.uploaded.should eq 8
-        uploaded_total.should eq 8
       end
     end
 
@@ -279,7 +243,6 @@ describe UploadIO do
     it "pauses and resumes upload" do
       # Initialize test data and trackers
       data = Bytes.new(8192) { 1_u8 }
-      uploaded_total = 0
       chunks = [] of Int32
       read_channel = Channel(Nil).new
 
@@ -288,7 +251,6 @@ describe UploadIO do
         data,
         4096,
         ->(chunk_size : Int32) {
-          uploaded_total += chunk_size
           chunks << chunk_size
         }
       )
@@ -325,7 +287,6 @@ describe UploadIO do
 
       # Verify final state
       upload_io.uploaded.should eq 8192
-      uploaded_total.should eq 8192
       chunks.should eq [4096, 4096]
     end
   end
