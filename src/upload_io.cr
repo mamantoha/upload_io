@@ -124,7 +124,7 @@ class UploadIO < IO
     *,
     max_speed : Int64? = nil,
   )
-    new(data, CHUNK_SIZE, on_progress, should_cancel, max_speed)
+    new(data, CHUNK_SIZE, on_progress, should_cancel, max_speed: max_speed)
   end
 
   # Cancels the upload process. After calling this method:
