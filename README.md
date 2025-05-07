@@ -136,6 +136,8 @@ Example output with speed limiting:
 ...
 ```
 
+### Upload cancellation
+
 The library provides two ways to cancel an upload:
 
 1. Using `should_cancel` callback:
