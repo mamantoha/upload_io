@@ -286,4 +286,44 @@ describe UploadIO do
       chunks.should eq [4096, 4096]
     end
   end
+
+  describe "speed limiting" do
+    it "limits upload speed to specified bytes per second" do
+      # Create a test file with 1MB of data
+      test_data = Bytes.new(1_048_576, 0_u8)
+      io = IO::Memory.new(test_data)
+
+      # Set speed limit to 100KB/s (102,400 bytes/s)
+      max_speed = 102_400
+      upload_io = UploadIO.new(io, 4096, max_speed: max_speed)
+
+      # Read all data and measure time
+      buffer = Bytes.new(4096)
+      start_time = Time.monotonic
+      total_read = 0
+
+      while (read = upload_io.read(buffer)) > 0
+        total_read += read
+      end
+
+      elapsed_time = (Time.monotonic - start_time).total_seconds
+      actual_speed = total_read / elapsed_time
+
+      # Verify actual speed is within 15% of max speed
+      margin = 0.15
+      min_speed = max_speed * (1 - margin)
+      max_speed_with_margin = max_speed * (1 + margin)
+
+      actual_speed.should be >= min_speed
+      actual_speed.should be <= max_speed_with_margin
+
+      # Verify total upload time is approximately 10.24 seconds
+      expected_time = 10.24
+      min_time = expected_time * (1 - margin)
+      max_time = expected_time * (1 + margin)
+
+      elapsed_time.should be >= min_time
+      elapsed_time.should be <= max_time
+    end
+  end
 end
