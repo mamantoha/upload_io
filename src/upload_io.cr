@@ -74,17 +74,23 @@ class UploadIO < IO
   # Returns true if the upload is currently paused
   getter? paused : Bool = false
 
+  # Maximum upload speed in bytes per second. If nil, no speed limit is applied.
+  getter max_speed : Int64?
+
   # Creates a new `UploadIO` with given arguments.
   #
   # - `data` - the upload data source
   # - `chunk_size` - the size of each chunk to be read
   # - `on_progress` - optional callback to track progress
   # - `should_cancel` - optional callback to control upload cancellation
+  # - `max_speed` - optional maximum upload speed in bytes per second
   def initialize(
     @data : HTTP::Client::BodyType,
     @chunk_size : Int32,
     @on_progress : Proc(Int32, Nil)? = nil,
     @should_cancel : Proc(Bool)? = nil,
+    *,
+    @max_speed : Int64? = nil,
   )
     super()
 
@@ -93,6 +99,9 @@ class UploadIO < IO
     @rewound = false
     @cancelled = false
     @paused = false
+    @last_read_time = Time.monotonic
+    @bytes_in_window = 0_i64
+    @window_start = Time.monotonic
 
     case @data
     in IO
@@ -112,8 +121,10 @@ class UploadIO < IO
     data : HTTP::Client::BodyType,
     on_progress : Proc(Int32, Nil)? = nil,
     should_cancel : Proc(Bool)? = nil,
+    *,
+    max_speed : Int64? = nil,
   )
-    new(data, CHUNK_SIZE, on_progress, should_cancel)
+    new(data, CHUNK_SIZE, on_progress, should_cancel, max_speed)
   end
 
   # Cancels the upload process. After calling this method:
@@ -141,6 +152,29 @@ class UploadIO < IO
   # - Subsequent reads will continue from where they left off
   def resume
     @paused = false
+  end
+
+  private def calculate_wait_time(bytes_read : Int32) : Time::Span
+    return Time::Span.zero unless @max_speed
+
+    current_time = Time.monotonic
+    window_duration = (current_time - @window_start).total_seconds
+
+    # Reset window if it's been more than 1 second
+    if window_duration >= 1.0
+      @bytes_in_window = 0
+      @window_start = current_time
+      window_duration = 0.0
+    end
+
+    @bytes_in_window += bytes_read
+
+    # Calculate how long we should wait to maintain the speed limit
+    target_duration = @bytes_in_window.to_f / @max_speed.not_nil!
+    wait_time = target_duration - window_duration
+
+    # Don't wait if we're already slower than the limit
+    wait_time > 0 ? Time::Span.new(nanoseconds: (wait_time * 1_000_000_000).to_i64) : Time::Span.zero
   end
 
   # Reads the next chunk of data and copies it into the provided buffer.
@@ -186,6 +220,9 @@ class UploadIO < IO
 
     @on_progress.try &.call(bytes_to_send)
 
+    # Apply speed limiting if configured
+    sleep(calculate_wait_time(bytes_to_send))
+
     bytes_to_send
   end
 
@@ -200,5 +237,8 @@ class UploadIO < IO
     @offset = 0
     @uploaded = 0
     @rewound = true
+    @last_read_time = Time.monotonic
+    @bytes_in_window = 0
+    @window_start = Time.monotonic
   end
 end
