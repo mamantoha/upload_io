@@ -15,6 +15,7 @@ Features:
 - Progress tracking through callback functions
 - Upload cancellation support via callback or direct method call
 - Pause/Resume functionality for upload control
+- Speed limiting with configurable bandwidth (in bytes per second)
 - Seamless integration with Crystal's `HTTP::Client`
 - Support for various input types (`IO`, `Byte`, `String`)
 - Real-time upload progress monitoring
@@ -76,6 +77,63 @@ Uploaded: 1040384 / 1048576 bytes (99.22%) in 2.45s
 Uploaded: 1044480 / 1048576 bytes (99.61%) in 2.48s
 Uploaded: 1048576 / 1048576 bytes (100.0%) in 2.50s
 Upload complete! Response: 200 in 2.50 seconds
+```
+
+### Speed Limiting
+
+`UploadIO` supports bandwidth limiting to control upload speed. The speed limit is specified in bytes per second. Here's how to use it:
+
+```crystal
+require "upload_io"
+require "http/client"
+
+file = File.open("/path/to/file")
+size = file.size
+uploaded_total = 0
+start_time = Time.monotonic
+
+# Progress tracking callback with speed display
+progress_tracker = ->(uploaded_chunk : Int32) do
+  uploaded_total += uploaded_chunk
+  timestamp = Time.local
+  current_time = Time.monotonic
+
+  # Calculate average speed
+  total_time = (current_time - start_time).total_seconds
+  average_speed = total_time > 0 ? (uploaded_total / total_time).to_i64 : 0_i64
+
+  # Convert to MB/s and Mbps
+  speed_mb = average_speed / 1_048_576.0
+  speed_mbps = (average_speed * 8) / 1_000_000.0
+
+  puts "[#{timestamp}] Uploaded: #{uploaded_total} / #{size} bytes (#{(uploaded_total * 100.0 / size).round(2)}%)"
+  puts "  Speed: #{speed_mb.round(2)} MB/s (#{speed_mbps.round(2)} Mbps)"
+end
+
+# Speed limit examples:
+# 1 Mbps = 125_000 bytes/s
+# 10 Mbps = 1_250_000 bytes/s
+# 100 Mbps = 12_500_000 bytes/s
+max_speed = 125_000 # 1 Mbps
+
+upload_io = UploadIO.new(
+  file,
+  4096,
+  progress_tracker,
+  max_speed: max_speed
+)
+
+response = HTTP::Client.post("http://example.com/upload", body: upload_io)
+```
+
+Example output with speed limiting:
+
+```
+[2025-05-07 10:30:15] Uploaded: 1048576 / 10485760 bytes (10.00%)
+  Speed: 0.12 MB/s (1.00 Mbps)
+[2025-05-07 10:30:16] Uploaded: 2097152 / 10485760 bytes (20.00%)
+  Speed: 0.12 MB/s (1.00 Mbps)
+...
 ```
 
 The library provides two ways to cancel an upload:
