@@ -35,39 +35,6 @@ class UploadIO < IO
   # Tracks the total bytes uploaded so far.
   getter uploaded : Int64 = 0
 
-  # Optional callback function that receives the size of each uploaded chunk.
-  #
-  # ```
-  # file = File.open("/path/to/file")
-  # size = file.size
-  # uploaded_total = 0
-  #
-  # # Progress tracking callback
-  # progress_tracker = ->(uploaded_chunk : Int32) do
-  #   uploaded_total += uploaded_chunk
-  #   puts "Uploaded: #{uploaded_total} / #{size} bytes"
-  # end
-  #
-  # upload_io = UploadIO.new(file, progress_tracker)
-  #
-  # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
-  # ```
-  getter on_progress : Proc(Int32, Nil)?
-
-  # Optional callback function that determines if the upload should be cancelled.
-  # Return true to cancel the upload.
-  #
-  # ```
-  # file = File.open("/path/to/file")
-  # start_time = Time.monotonic
-  #
-  # # Using should_cancel callback to stop upload after 5 seconds
-  # upload_io = UploadIO.new(file, nil, -> { (Time.monotonic - start_time).total_seconds > 5 })
-  #
-  # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
-  # ```
-  getter should_cancel : Proc(Bool)?
-
   # Returns true if the upload has been cancelled
   getter? cancelled : Bool = false
 
@@ -127,22 +94,37 @@ class UploadIO < IO
     new(data, CHUNK_SIZE, on_progress, should_cancel, max_speed: max_speed)
   end
 
-  # Sets the callback function that receives the size of each uploaded chunk.
+  # Optional callback function that receives the size of each uploaded chunk.
   #
   # ```
+  # file = File.open("/path/to/file")
+  # size = file.size
+  # uploaded_total = 0
+  #
+  # upload_io = UploadIO.new(file, progress_tracker)
   # upload_io.on_progress ->(uploaded_chunk : Int32) do
-  #   total += uploaded_chunk
-  #   puts "Uploaded: #{total} bytes"
+  #   uploaded_total += uploaded_chunk
+  #   puts "Uploaded: #{uploaded_total} / #{size} bytes"
   # end
+  #
+  # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
   # ```
   def on_progress(on_progress : Proc(Int32, Nil))
     @on_progress = on_progress
   end
 
-  # Sets the callback function that determines if the upload should be cancelled.
+  # Optional callback function that determines if the upload should be cancelled.
+  # Return true to cancel the upload.
   #
   # ```
+  # file = File.open("/path/to/file")
+  # start_time = Time.monotonic
+  #
+  # upload_io = UploadIO.new(file)
+  # # Stop upload after 5 seconds
   # upload_io.should_cancel -> { (Time.monotonic - start_time).total_seconds > 5 }
+  #
+  # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
   # ```
   def should_cancel(should_cancel : Proc(Bool))
     @should_cancel = should_cancel
