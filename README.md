@@ -48,7 +48,7 @@ start_time = Time.monotonic
 upload_io = UploadIO.new(file, 4096)
 
 # Progress tracking callback
-upload_io.on_progress = ->(uploaded_chunk : Int32) do
+upload_io.on_progress ->(uploaded_chunk : Int32) do
   uploaded_total += uploaded_chunk
   elapsed_time = (Time.monotonic - start_time).total_seconds
   percentage = (uploaded_total * 100.0 / size).round(2)
@@ -56,7 +56,7 @@ upload_io.on_progress = ->(uploaded_chunk : Int32) do
 end
 
 # Using should_cancel callback to stop upload after 5 seconds
-upload_io.should_cancel = ->{ (Time.monotonic - start_time).total_seconds > 5 }
+upload_io.should_cancel ->{ (Time.monotonic - start_time).total_seconds > 5 }
 
 response = HTTP::Client.post("http://example.com/upload", body: upload_io)
 

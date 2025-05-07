@@ -91,7 +91,7 @@ describe UploadIO do
 
       upload_io = UploadIO.new(data, 256)
 
-      upload_io.on_progress = ->(chunk_size : Int32) {
+      upload_io.on_progress ->(chunk_size : Int32) {
         calls << chunk_size
       }
 
@@ -223,7 +223,7 @@ describe UploadIO do
 
         upload_io = UploadIO.new(data, 4096)
 
-        upload_io.should_cancel = -> {
+        upload_io.should_cancel -> {
           read_count += 1
           read_count > 1 # Cancel after first chunk
         }
