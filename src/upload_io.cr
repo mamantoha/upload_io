@@ -52,7 +52,7 @@ class UploadIO < IO
   #
   # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
   # ```
-  getter on_progress : Proc(Int32, Nil)?
+  property on_progress : Proc(Int32, Nil)?
 
   # Optional callback function that determines if the upload should be cancelled.
   # Return true to cancel the upload.
@@ -66,7 +66,7 @@ class UploadIO < IO
   #
   # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
   # ```
-  getter should_cancel : Proc(Bool)?
+  property should_cancel : Proc(Bool)?
 
   # Returns true if the upload has been cancelled
   getter? cancelled : Bool = false

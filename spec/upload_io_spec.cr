@@ -87,6 +87,27 @@ describe UploadIO do
     calls.should eq [256, 256, 256, 256]
   end
 
+  describe ".on_progress" do
+    it "triggers callback correctly" do
+      data = Bytes.new(1024) { 1_u8 }
+      calls = [] of Int32
+
+      upload_io = UploadIO.new(data, 256)
+
+      upload_io.on_progress = ->(chunk_size : Int32) {
+        calls << chunk_size
+      }
+
+      buffer = Bytes.new(256)
+
+      while (bytes_read = upload_io.read(buffer)) > 0
+        buffer[0, bytes_read]
+      end
+
+      calls.should eq [256, 256, 256, 256]
+    end
+  end
+
   describe "cancel functionality" do
     it "cancels upload when should_cancel returns true" do
       data = Bytes.new(8192) { 1_u8 }
@@ -228,6 +249,28 @@ describe UploadIO do
 
         upload_io.uploaded.should eq 8
         uploaded_total.should eq 8
+      end
+    end
+
+    describe ".should_cancel" do
+      it "triggers callback correctly" do
+        data = Bytes.new(4096 * 8) { 1_u8 }
+        read_count = 0
+
+        upload_io = UploadIO.new(data, 4096)
+
+        upload_io.should_cancel = -> {
+          read_count += 1
+          read_count > 1 # Cancel after first chunk
+        }
+
+        buffer = Bytes.new(4096)
+
+        while (bytes_read = upload_io.read(buffer)) > 0
+          buffer[0, bytes_read]
+        end
+
+        upload_io.uploaded.should eq 4096
       end
     end
   end
