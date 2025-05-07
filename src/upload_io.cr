@@ -101,7 +101,7 @@ class UploadIO < IO
   # size = file.size
   # uploaded_total = 0
   #
-  # upload_io = UploadIO.new(file, progress_tracker)
+  # upload_io = UploadIO.new(file)
   # upload_io.on_progress ->(uploaded_chunk : Int32) do
   #   uploaded_total += uploaded_chunk
   #   puts "Uploaded: #{uploaded_total} / #{size} bytes"
