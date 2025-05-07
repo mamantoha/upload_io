@@ -127,10 +127,23 @@ class UploadIO < IO
     new(data, CHUNK_SIZE, on_progress, should_cancel, max_speed: max_speed)
   end
 
+  # Sets the callback function that receives the size of each uploaded chunk.
+  #
+  # ```
+  # upload_io.on_progress ->(uploaded_chunk : Int32) do
+  #   total += uploaded_chunk
+  #   puts "Uploaded: #{total} bytes"
+  # end
+  # ```
   def on_progress(on_progress : Proc(Int32, Nil))
     @on_progress = on_progress
   end
 
+  # Sets the callback function that determines if the upload should be cancelled.
+  #
+  # ```
+  # upload_io.should_cancel -> { (Time.monotonic - start_time).total_seconds > 5 }
+  # ```
   def should_cancel(should_cancel : Proc(Bool))
     @should_cancel = should_cancel
   end
