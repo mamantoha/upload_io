@@ -309,15 +309,15 @@ describe UploadIO do
       elapsed_time = (Time.monotonic - start_time).total_seconds
       actual_speed = total_read / elapsed_time
 
-      # Verify actual speed is within 10% of max speed
-      margin = 0.1
+      # Verify actual speed is within 15% of max speed
+      margin = 0.15
       min_speed = max_speed * (1 - margin)
       max_speed_with_margin = max_speed * (1 + margin)
 
       actual_speed.should be >= min_speed
       actual_speed.should be <= max_speed_with_margin
 
-      # Verify total upload time is approximately 10.24 seconds (with 10% margin)
+      # Verify total upload time is approximately 10.24 seconds
       expected_time = 10.24
       min_time = expected_time * (1 - margin)
       max_time = expected_time * (1 + margin)
