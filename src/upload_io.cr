@@ -170,6 +170,7 @@ class UploadIO < IO
     @bytes_in_window += bytes_read
 
     # Calculate how long we should wait to maintain the speed limit
+    # ameba:disable Lint/NotNil
     target_duration = @bytes_in_window.to_f / @max_speed.not_nil!
     wait_time = target_duration - window_duration
 
