@@ -217,18 +217,12 @@ class UploadIO < IO
   # we can only track the amount of data read and not the actual bytes transmitted to the server.
   def read(slice : Bytes) : Int32
     return 0 if @rewound || cancelled?
-
-    @should_cancel.try do |should_cancel|
-      return 0 if should_cancel.call
-    end
-
+    return 0 if @should_cancel.try &.call
     return 0 unless @data
 
     while paused?
       sleep 0.1.seconds
     end
-
-    bytes_to_send = @chunk_size
 
     if @is_io
       # read directly into the provided buffer
