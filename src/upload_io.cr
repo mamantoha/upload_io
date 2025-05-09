@@ -211,7 +211,9 @@ class UploadIO < IO
   # This method is called automatically by `HTTP::Client` when sending data.
   # It reads up to `chunk_size` bytes and updates the upload progress.
   #
-  # Returns the number of bytes that will be sent to the server (not the total sent bytes).
+  # Returns the number of bytes that will be sent to the server (not the total send bytes),
+  # which is 0 if and only if there is no more data to reads
+  # (so checking for 0 is the way to detect end of file).
   #
   # Since `UploadIO` only provides data to `HTTP::Client`,
   # we can only track the amount of data read and not the actual bytes transmitted to the server.
