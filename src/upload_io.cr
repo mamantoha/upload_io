@@ -42,7 +42,7 @@ class UploadIO < IO
   getter? paused : Bool = false
 
   # Maximum upload speed in bytes per second. If nil, no speed limit is applied.
-  getter max_speed : Int64?
+  property max_speed : Int64?
 
   # Creates a new `UploadIO` with given arguments.
   #
@@ -82,6 +82,31 @@ class UploadIO < IO
     end
 
     @offset = 0_i64 # Track position (only used for Bytes or String)
+  end
+
+  # Creates a new `UploadIO` with a block for configuration.
+  #
+  # ```
+  # file = File.open("/path/to/file")
+  # size = file.size
+  # uploaded_total = 0
+  #
+  # upload_io = UploadIO.new(file) do |io|
+  #   io.on_progress ->(uploaded_chunk : Int32) do
+  #     uploaded_total += uploaded_chunk
+  #     puts "Uploaded: #{uploaded_total} / #{size} bytes"
+  #   end
+  #
+  #   io.should_cancel -> { uploaded_total >= size / 2 }
+  #   io.max_speed = 125_000 # 1 Mbps
+  # end
+  #
+  # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
+  # ```
+  def self.new(data : HTTP::Client::BodyType, chunk_size : Int32 = CHUNK_SIZE, &block : self ->)
+    io = new(data, chunk_size)
+    block.call(io)
+    io
   end
 
   def self.new(

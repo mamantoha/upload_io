@@ -330,4 +330,32 @@ describe UploadIO do
       elapsed_time.should be <= max_time
     end
   end
+
+  describe "block initialization" do
+    it "configures UploadIO instance with block" do
+      data = Bytes.new(8192) { 1_u8 }
+      chunks = [] of Int32
+      cancelled = false
+      max_speed = 102_400
+
+      upload_io = UploadIO.new(data) do |io|
+        io.on_progress ->(chunk_size : Int32) do
+          chunks << chunk_size
+        end
+
+        io.should_cancel -> { cancelled }
+        io.max_speed = max_speed
+      end
+
+      upload_io.max_speed.should eq max_speed
+
+      buffer = Bytes.new(4096)
+      while (bytes_read = upload_io.read(buffer)) > 0
+        buffer[0, bytes_read]
+      end
+
+      upload_io.uploaded.should eq 8192
+      chunks.should eq [4096, 4096]
+    end
+  end
 end
