@@ -134,8 +134,7 @@ class UploadIO < IO
   #
   # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
   # ```
-  def on_progress(on_progress : Proc(Int32, Nil))
-    @on_progress = on_progress
+  def on_progress(@on_progress : Proc(Int32, Nil))
   end
 
   # Optional callback function that determines if the upload should be cancelled.
@@ -151,8 +150,7 @@ class UploadIO < IO
   #
   # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
   # ```
-  def should_cancel(should_cancel : Proc(Bool))
-    @should_cancel = should_cancel
+  def should_cancel(@should_cancel : Proc(Bool))
   end
 
   # Cancels the upload process. After calling this method:
