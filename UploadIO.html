@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Crystal Docs 1.17.1">
+<meta name="crystal_docs.project_version" content="main">
+<meta name="crystal_docs.project_name" content="upload_io">
+
+
+
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="js/doc.js"></script>
+
+  <meta name="repository-name" content="upload_io">
+  <title>UploadIO - upload_io main</title>
+  <script type="text/javascript">
+    CrystalDocs.base_path = "";
+  </script>
+</head>
+<body>
+
+<svg class="hidden">
+  <symbol id="octicon-link" viewBox="0 0 16 16">
+    <path fill="currentColor" fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+  </symbol>
+</svg>
+<input type="checkbox" id="sidebar-btn">
+<label for="sidebar-btn" id="sidebar-btn-label">
+  <svg class="open" xmlns="http://www.w3.org/2000/svg" height="2em" width="2em" viewBox="0 0 512 512"><title>Open Sidebar</title><path fill="currentColor" d="M80 96v64h352V96H80zm0 112v64h352v-64H80zm0 112v64h352v-64H80z"></path></svg>
+  <svg class="close" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 512 512"><title>Close Sidebar</title><path fill="currentColor" d="m118.6 73.4-45.2 45.2L210.7 256 73.4 393.4l45.2 45.2L256 301.3l137.4 137.3 45.2-45.2L301.3 256l137.3-137.4-45.2-45.2L256 210.7Z"></path></svg>
+</label>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="project-summary">
+      <h1 class="project-name">
+        <a href="index.html">
+          upload_io
+        </a>
+      </h1>
+
+      <span class="project-version">
+        main
+      </span>
+    </div>
+  </div>
+
+  <div class="search-results hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" current" data-id="upload_io/UploadIO" data-name="uploadio">
+      <a href="UploadIO.html">UploadIO</a>
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1 class="type-name">
+
+  <span class="kind">
+    class
+  </span> UploadIO
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="UploadIO.html">UploadIO</a></li><li class="superclass">IO</li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p><code><a href="UploadIO.html">UploadIO</a></code> supports chunked uploads with a built-in progress callback
+and provides upload cancellation through either a callback or direct method call.</p>
+<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;upload_io&quot;</span>
+<span class="k">require</span> <span class="s">&quot;http/client&quot;</span>
+
+file <span class="o">=</span> <span class="t">File</span>.open(<span class="s">&quot;/path/to/file&quot;</span>)
+size <span class="o">=</span> file.size
+uploaded_total <span class="o">=</span> <span class="n">0</span>
+
+upload_io <span class="o">=</span> <span class="t">UploadIO</span>.new(file, <span class="n">4096</span>, <span class="o">-&gt;</span>(uploaded_chunk : <span class="t">Int32</span>) {
+  uploaded_total <span class="o">+=</span> uploaded_chunk
+  puts <span class="s">&quot;Uploaded: </span><span class="i">#{</span>uploaded_total<span class="i">}</span><span class="s"> / </span><span class="i">#{</span>size<span class="i">}</span><span class="s"> bytes&quot;</span>
+})
+
+headers <span class="o">=</span> <span class="t">HTTP</span><span class="t">::</span><span class="t">Headers</span>{
+  <span class="s">&quot;Content-Type&quot;</span>   <span class="o">=&gt;</span> <span class="s">&quot;application/octet-stream&quot;</span>,
+  <span class="s">&quot;Content-Length&quot;</span> <span class="o">=&gt;</span> size.to_s,
+}
+
+response <span class="o">=</span> <span class="t">HTTP</span><span class="t">::</span><span class="t">Client</span>.post(<span class="s">&quot;http://example.com/upload&quot;</span>, headers: headers, body: upload_io)
+puts <span class="s">&quot;Upload complete! Response: </span><span class="i">#{</span>response.status_code<span class="i">}</span><span class="s">&quot;</span></code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2>
+    <a id="defined-in" class="anchor" href="#defined-in">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Defined in:
+  </h2>
+  
+    
+      <a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L30" target="_blank">
+        upload_io.cr
+      </a>
+    
+    <br/>
+  
+
+
+
+  
+    <h2>
+      <a id="constant-summary" class="anchor" href="#constant-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+      Constant Summary
+    </h2>
+  
+  <dl>
+    
+      <dt class="entry-const" id="CHUNK_SIZE">
+        <strong>CHUNK_SIZE</strong> = <code><span class="n">4096</span></code>
+      </dt>
+      
+    
+      <dt class="entry-const" id="VERSION">
+        <strong>VERSION</strong> = <code><span class="o">{{</span> (<span class="s">`shards version /home/runner/work/upload_io/upload_io/src`</span>).chomp.stringify }}</code>
+      </dt>
+      
+    
+  </dl>
+
+
+
+  
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new%28data%3AHTTP%3A%3AClient%3A%3ABodyType%2Cchunk_size%3AInt32%2Con_progress%3AProc%28Int32%2CNil%29%7CNil%3Dnil%2Cshould_cancel%3AProc%28Bool%29%7CNil%3Dnil%2C%2A%2Cmax_speed%3AInt64%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(data : HTTP::Client::BodyType, chunk_size : Int32, on_progress : Proc(Int32, Nil) | Nil = <span class="n">nil</span>, should_cancel : Proc(Bool) | Nil = <span class="n">nil</span>, *, max_speed : Int64 | Nil = <span class="n">nil</span>)</a>
+        
+          <div class="summary"><p>Creates a new <code><a href="UploadIO.html">UploadIO</a></code> with given arguments.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#new%28data%3AHTTP%3A%3AClient%3A%3ABodyType%2Cchunk_size%3AInt32%3DCHUNK_SIZE%2C%26block%3Aself-%3E%29-class-method" class="signature"><strong>.new</strong>(data : HTTP::Client::BodyType, chunk_size : Int32 = <span class="t">CHUNK_SIZE</span>, &block : <span class="k">self</span> -> )</a>
+        
+          <div class="summary"><p>Creates a new <code><a href="UploadIO.html">UploadIO</a></code> with a block for configuration.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#new%28data%3AHTTP%3A%3AClient%3A%3ABodyType%2Con_progress%3AProc%28Int32%2CNil%29%7CNil%3Dnil%2Cshould_cancel%3AProc%28Bool%29%7CNil%3Dnil%2C%2A%2Cmax_speed%3AInt64%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(data : HTTP::Client::BodyType, on_progress : Proc(Int32, Nil) | Nil = <span class="n">nil</span>, should_cancel : Proc(Bool) | Nil = <span class="n">nil</span>, *, max_speed : Int64 | Nil = <span class="n">nil</span>)</a>
+        
+      </li>
+    
+  </ul>
+
+
+  
+
+  
+
+  
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#cancel-instance-method" class="signature"><strong>#cancel</strong></a>
+        
+          <div class="summary"><p>Cancels the upload process.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#cancelled%3F%3ABool-instance-method" class="signature"><strong>#cancelled?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns true if the upload has been cancelled</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#max_speed%3AInt64%7CNil-instance-method" class="signature"><strong>#max_speed</strong> : Int64 | Nil</a>
+        
+          <div class="summary"><p>Maximum upload speed in bytes per second.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#max_speed%3D%28max_speed%3AInt64%7CNil%29-instance-method" class="signature"><strong>#max_speed=</strong>(max_speed : Int64 | Nil)</a>
+        
+          <div class="summary"><p>Maximum upload speed in bytes per second.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#on_progress%28on_progress%3AProc%28Int32%2CNil%29%29-instance-method" class="signature"><strong>#on_progress</strong>(on_progress : Proc(Int32, Nil))</a>
+        
+          <div class="summary"><p>Optional callback function that receives the size of each uploaded chunk.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#pause-instance-method" class="signature"><strong>#pause</strong></a>
+        
+          <div class="summary"><p>Pauses the upload process.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#paused%3F%3ABool-instance-method" class="signature"><strong>#paused?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns true if the upload is currently paused</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#read%28slice%3ABytes%29%3AInt32-instance-method" class="signature"><strong>#read</strong>(slice : Bytes) : Int32</a>
+        
+          <div class="summary"><p>Reads the next chunk of data and copies it into the provided buffer.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#resume-instance-method" class="signature"><strong>#resume</strong></a>
+        
+          <div class="summary"><p>Resumes a paused upload.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#rewind-instance-method" class="signature"><strong>#rewind</strong></a>
+        
+          <div class="summary"><p>Rewinds this <code>IO</code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#should_cancel%28should_cancel%3AProc%28Bool%29%29-instance-method" class="signature"><strong>#should_cancel</strong>(should_cancel : Proc(Bool))</a>
+        
+          <div class="summary"><p>Optional callback function that determines if the upload should be cancelled.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#uploaded%3AInt64-instance-method" class="signature"><strong>#uploaded</strong> : Int64</a>
+        
+          <div class="summary"><p>Tracks the total bytes uploaded so far.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#write%28slice%3ABytes%29%3ANil-instance-method" class="signature"><strong>#write</strong>(slice : Bytes) : Nil</a>
+        
+          <div class="summary"><p>Required method by <code>IO</code> but not used in <code><a href="UploadIO.html">UploadIO</a></code>.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+  <div class="methods-inherited">
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+      
+
+
+      
+
+
+      
+
+
+      
+
+
+    
+  </div>
+
+  
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(data:HTTP::Client::BodyType,chunk_size:Int32,on_progress:Proc(Int32,Nil)|Nil=nil,should_cancel:Proc(Bool)|Nil=nil,*,max_speed:Int64|Nil=nil)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(data : HTTP::Client::BodyType, chunk_size : Int32, on_progress : Proc(Int32, Nil) | Nil = <span class="n">nil</span>, should_cancel : Proc(Bool) | Nil = <span class="n">nil</span>, *, max_speed : Int64 | Nil = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#new%28data%3AHTTP%3A%3AClient%3A%3ABodyType%2Cchunk_size%3AInt32%2Con_progress%3AProc%28Int32%2CNil%29%7CNil%3Dnil%2Cshould_cancel%3AProc%28Bool%29%7CNil%3Dnil%2C%2A%2Cmax_speed%3AInt64%7CNil%3Dnil%29-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Creates a new <code><a href="UploadIO.html">UploadIO</a></code> with given arguments.</p>
+<ul>
+<li><code>data</code> - the upload data source</li>
+<li><code>chunk_size</code> - the size of each chunk to be read</li>
+<li><code><a href="UploadIO.html#on_progress%28on_progress%3AProc%28Int32%2CNil%29%29-instance-method">#on_progress</a></code> - optional callback to track progress</li>
+<li><code><a href="UploadIO.html#should_cancel%28should_cancel%3AProc%28Bool%29%29-instance-method">#should_cancel</a></code> - optional callback to control upload cancellation</li>
+<li><code><a href="UploadIO.html#max_speed%3AInt64%7CNil-instance-method">#max_speed</a></code> - optional maximum upload speed in bytes per second</li>
+</ul>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L54" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="new(data:HTTP::Client::BodyType,chunk_size:Int32=CHUNK_SIZE,&amp;block:self-&gt;)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(data : HTTP::Client::BodyType, chunk_size : Int32 = <span class="t">CHUNK_SIZE</span>, &block : <span class="k">self</span> -> )
+
+        <a class="method-permalink" href="#new%28data%3AHTTP%3A%3AClient%3A%3ABodyType%2Cchunk_size%3AInt32%3DCHUNK_SIZE%2C%26block%3Aself-%3E%29-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Creates a new <code><a href="UploadIO.html">UploadIO</a></code> with a block for configuration.</p>
+<pre><code class="language-crystal">file <span class="o">=</span> <span class="t">File</span>.open(<span class="s">&quot;/path/to/file&quot;</span>)
+size <span class="o">=</span> file.size
+uploaded_total <span class="o">=</span> <span class="n">0</span>
+
+upload_io <span class="o">=</span> <span class="t">UploadIO</span>.new(file) <span class="k">do</span> <span class="o">|</span>io<span class="o">|</span>
+  io.on_progress <span class="o">-&gt;</span>(uploaded_chunk : <span class="t">Int32</span>) <span class="k">do</span>
+    uploaded_total <span class="o">+=</span> uploaded_chunk
+    puts <span class="s">&quot;Uploaded: </span><span class="i">#{</span>uploaded_total<span class="i">}</span><span class="s"> / </span><span class="i">#{</span>size<span class="i">}</span><span class="s"> bytes&quot;</span>
+  <span class="k">end</span>
+
+  io.should_cancel <span class="o">-&gt;</span> { uploaded_total <span class="o">&gt;=</span> size <span class="o">/</span> <span class="n">2</span> }
+  io.max_speed <span class="o">=</span> <span class="n">125_000</span> <span class="c"># 1 Mbps</span>
+<span class="k">end</span>
+
+response <span class="o">=</span> <span class="t">HTTP</span><span class="t">::</span><span class="t">Client</span>.post(<span class="s">&quot;http://example.com/upload&quot;</span>, body: upload_io)</code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L106" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="new(data:HTTP::Client::BodyType,on_progress:Proc(Int32,Nil)|Nil=nil,should_cancel:Proc(Bool)|Nil=nil,*,max_speed:Int64|Nil=nil)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(data : HTTP::Client::BodyType, on_progress : Proc(Int32, Nil) | Nil = <span class="n">nil</span>, should_cancel : Proc(Bool) | Nil = <span class="n">nil</span>, *, max_speed : Int64 | Nil = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#new%28data%3AHTTP%3A%3AClient%3A%3ABodyType%2Con_progress%3AProc%28Int32%2CNil%29%7CNil%3Dnil%2Cshould_cancel%3AProc%28Bool%29%7CNil%3Dnil%2C%2A%2Cmax_speed%3AInt64%7CNil%3Dnil%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L112" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+  
+
+  
+
+  
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="cancel-instance-method">
+      <div class="signature">
+        
+        def <strong>cancel</strong>
+
+        <a class="method-permalink" href="#cancel-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Cancels the upload process. After calling this method:</p>
+<ul>
+<li>Subsequent reads will return 0 bytes</li>
+<li>If the data source is an IO, it will be closed</li>
+<li>The upload cannot be resumed</li>
+</ul>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L160" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cancelled?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>cancelled?</strong> : Bool
+
+        <a class="method-permalink" href="#cancelled%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns true if the upload has been cancelled</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L39" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="max_speed:Int64|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>max_speed</strong> : Int64 | Nil
+
+        <a class="method-permalink" href="#max_speed%3AInt64%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Maximum upload speed in bytes per second. If nil, no speed limit is applied.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L45" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="max_speed=(max_speed:Int64|Nil)-instance-method">
+      <div class="signature">
+        
+        def <strong>max_speed=</strong>(max_speed : Int64 | Nil)
+
+        <a class="method-permalink" href="#max_speed%3D%28max_speed%3AInt64%7CNil%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Maximum upload speed in bytes per second. If nil, no speed limit is applied.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L45" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="on_progress(on_progress:Proc(Int32,Nil))-instance-method">
+      <div class="signature">
+        
+        def <strong>on_progress</strong>(on_progress : Proc(Int32, Nil))
+
+        <a class="method-permalink" href="#on_progress%28on_progress%3AProc%28Int32%2CNil%29%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Optional callback function that receives the size of each uploaded chunk.</p>
+<pre><code class="language-crystal">file <span class="o">=</span> <span class="t">File</span>.open(<span class="s">&quot;/path/to/file&quot;</span>)
+size <span class="o">=</span> file.size
+uploaded_total <span class="o">=</span> <span class="n">0</span>
+
+upload_io <span class="o">=</span> <span class="t">UploadIO</span>.new(file)
+upload_io.on_progress <span class="o">-&gt;</span>(uploaded_chunk : <span class="t">Int32</span>) <span class="k">do</span>
+  uploaded_total <span class="o">+=</span> uploaded_chunk
+  puts <span class="s">&quot;Uploaded: </span><span class="i">#{</span>uploaded_total<span class="i">}</span><span class="s"> / </span><span class="i">#{</span>size<span class="i">}</span><span class="s"> bytes&quot;</span>
+<span class="k">end</span>
+
+response <span class="o">=</span> <span class="t">HTTP</span><span class="t">::</span><span class="t">Client</span>.post(<span class="s">&quot;http://example.com/upload&quot;</span>, body: upload_io)</code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L137" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="pause-instance-method">
+      <div class="signature">
+        
+        def <strong>pause</strong>
+
+        <a class="method-permalink" href="#pause-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Pauses the upload process. While paused:</p>
+<ul>
+<li>Subsequent reads will block until <code><a href="UploadIO.html#resume-instance-method">#resume</a></code> is called</li>
+<li>The upload can be resumed using the <code><a href="UploadIO.html#resume-instance-method">#resume</a></code> method</li>
+</ul>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L173" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="paused?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>paused?</strong> : Bool
+
+        <a class="method-permalink" href="#paused%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns true if the upload is currently paused</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L42" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="read(slice:Bytes):Int32-instance-method">
+      <div class="signature">
+        
+        def <strong>read</strong>(slice : Bytes) : Int32
+
+        <a class="method-permalink" href="#read%28slice%3ABytes%29%3AInt32-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Reads the next chunk of data and copies it into the provided buffer.</p>
+<p>This method is called automatically by <code>HTTP::Client</code> when sending data.
+It reads up to <code>chunk_size</code> bytes and updates the upload progress.</p>
+<p>Returns the number of bytes that will be sent to the server (not the total send bytes),
+which is 0 if and only if there is no more data to reads
+(so checking for 0 is the way to detect end of file).</p>
+<p>Since <code><a href="UploadIO.html">UploadIO</a></code> only provides data to <code>HTTP::Client</code>,
+we can only track the amount of data read and not the actual bytes transmitted to the server.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L218" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="resume-instance-method">
+      <div class="signature">
+        
+        def <strong>resume</strong>
+
+        <a class="method-permalink" href="#resume-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Resumes a paused upload. After calling this method:</p>
+<ul>
+<li>Subsequent reads will continue from where they left off</li>
+</ul>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L179" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="rewind-instance-method">
+      <div class="signature">
+        
+        def <strong>rewind</strong>
+
+        <a class="method-permalink" href="#rewind-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from class IO
+            </div>
+          
+          <p>Rewinds this <code>IO</code>. By default this method raises, but including types
+may implement it.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L259" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="should_cancel(should_cancel:Proc(Bool))-instance-method">
+      <div class="signature">
+        
+        def <strong>should_cancel</strong>(should_cancel : Proc(Bool))
+
+        <a class="method-permalink" href="#should_cancel%28should_cancel%3AProc%28Bool%29%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Optional callback function that determines if the upload should be cancelled.
+Return true to cancel the upload.</p>
+<pre><code class="language-crystal">file <span class="o">=</span> <span class="t">File</span>.open(<span class="s">&quot;/path/to/file&quot;</span>)
+start_time <span class="o">=</span> <span class="t">Time</span>.monotonic
+
+upload_io <span class="o">=</span> <span class="t">UploadIO</span>.new(file)
+<span class="c"># Stop upload after 5 seconds</span>
+upload_io.should_cancel <span class="o">-&gt;</span> { (<span class="t">Time</span>.monotonic <span class="o">-</span> start_time).total_seconds <span class="o">&gt;</span> <span class="n">5</span> }
+
+response <span class="o">=</span> <span class="t">HTTP</span><span class="t">::</span><span class="t">Client</span>.post(<span class="s">&quot;http://example.com/upload&quot;</span>, body: upload_io)</code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L153" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="uploaded:Int64-instance-method">
+      <div class="signature">
+        
+        def <strong>uploaded</strong> : Int64
+
+        <a class="method-permalink" href="#uploaded%3AInt64-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Tracks the total bytes uploaded so far.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L36" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="write(slice:Bytes):Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>write</strong>(slice : Bytes) : Nil
+
+        <a class="method-permalink" href="#write%28slice%3ABytes%29%3ANil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Required method by <code>IO</code> but not used in <code><a href="UploadIO.html">UploadIO</a></code>.</p>
+<p><code><a href="UploadIO.html">UploadIO</a></code> is read-only, so <code><a href="UploadIO.html#write%28slice%3ABytes%29%3ANil-instance-method">#write</a></code> does nothing.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/mamantoha/upload_io/blob/97f9f468cd07812914a1e6a8c9f1adb98bc41963/src/upload_io.cr#L255" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+
+</div>
+
+</body>
+</html>
