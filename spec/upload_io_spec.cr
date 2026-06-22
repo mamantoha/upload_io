@@ -344,6 +344,28 @@ describe UploadIO do
   end
 
   describe "speed limiting" do
+    it "rejects zero max speed" do
+      expect_raises ArgumentError, "max_speed must be positive" do
+        UploadIO.new(Bytes.new(0), max_speed: 0_i64)
+      end
+    end
+
+    it "rejects negative max speed" do
+      expect_raises ArgumentError, "max_speed must be positive" do
+        UploadIO.new(Bytes.new(0), max_speed: -1_i64)
+      end
+    end
+
+    it "rejects invalid max speed assignment" do
+      upload_io = UploadIO.new(Bytes.new(0), max_speed: 1_i64)
+
+      expect_raises ArgumentError, "max_speed must be positive" do
+        upload_io.max_speed = 0_i64
+      end
+
+      upload_io.max_speed.should eq 1_i64
+    end
+
     it "limits upload speed to specified bytes per second" do
       # Create a test file with 1MB of data
       test_data = Bytes.new(1_048_576, 0_u8)

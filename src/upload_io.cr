@@ -42,7 +42,7 @@ class UploadIO < IO
   getter? paused : Bool = false
 
   # Maximum upload speed in bytes per second. If nil, no speed limit is applied.
-  property max_speed : Int64?
+  getter max_speed : Int64?
 
   # Creates a new `UploadIO` with given arguments.
   #
@@ -60,6 +60,8 @@ class UploadIO < IO
     @max_speed : Int64? = nil,
   )
     super()
+
+    validate_max_speed(@max_speed)
 
     @is_io = false
     @size = 0
@@ -153,6 +155,11 @@ class UploadIO < IO
   def should_cancel(@should_cancel : Proc(Bool))
   end
 
+  def max_speed=(max_speed : Int64?)
+    validate_max_speed(max_speed)
+    @max_speed = max_speed
+  end
+
   # Cancels the upload process. After calling this method:
   # - Subsequent reads will return 0 bytes
   # - If the data source is an IO, it will be closed
@@ -178,6 +185,11 @@ class UploadIO < IO
   # - Subsequent reads will continue from where they left off
   def resume
     @paused = false
+  end
+
+  private def validate_max_speed(max_speed : Int64?) : Nil
+    return unless max_speed
+    raise ArgumentError.new("max_speed must be positive") if max_speed <= 0
   end
 
   private def calculate_wait_time(bytes_read : Int32) : Time::Span
