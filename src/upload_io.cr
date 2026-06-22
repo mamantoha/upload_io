@@ -229,7 +229,10 @@ class UploadIO < IO
   # we can only track the amount of data read and not the actual bytes transmitted to the server.
   def read(slice : Bytes) : Int32
     return 0 if cancelled?
-    return 0 if @should_cancel.try &.call
+    if @should_cancel.try &.call
+      cancel
+      return 0
+    end
     return 0 unless @data
 
     while paused?

@@ -179,6 +179,32 @@ describe UploadIO do
       end
 
       upload_io.uploaded.should eq 4096
+      upload_io.cancelled?.should be_true
+    end
+
+    it "closes IO source when should_cancel returns true" do
+      io = IO::Memory.new("This is a streamed test.")
+      read_count = 0
+
+      upload_io = UploadIO.new(
+        io,
+        8,
+        nil,
+        -> {
+          read_count += 1
+          read_count > 1
+        }
+      )
+
+      buffer = Bytes.new(8)
+
+      while (bytes_read = upload_io.read(buffer)) > 0
+        buffer[0, bytes_read]
+      end
+
+      io.closed?.should be_true
+      upload_io.cancelled?.should be_true
+      upload_io.uploaded.should eq 8
     end
 
     it "continues upload when should_cancel returns false" do
