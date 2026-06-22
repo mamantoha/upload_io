@@ -66,9 +66,9 @@ class UploadIO < IO
     @rewound = false
     @cancelled = false
     @paused = false
-    @last_read_time = Time.monotonic
+    @last_read_time = Time.instant
     @bytes_in_window = 0_i64
-    @window_start = Time.monotonic
+    @window_start = Time.instant
 
     case @data
     in IO
@@ -142,11 +142,11 @@ class UploadIO < IO
   #
   # ```
   # file = File.open("/path/to/file")
-  # start_time = Time.monotonic
+  # start_time = Time.instant
   #
   # upload_io = UploadIO.new(file)
   # # Stop upload after 5 seconds
-  # upload_io.should_cancel -> { (Time.monotonic - start_time).total_seconds > 5 }
+  # upload_io.should_cancel -> { (Time.instant - start_time).total_seconds > 5 }
   #
   # response = HTTP::Client.post("http://example.com/upload", body: upload_io)
   # ```
@@ -183,7 +183,7 @@ class UploadIO < IO
   private def calculate_wait_time(bytes_read : Int32) : Time::Span
     return Time::Span.zero unless @max_speed
 
-    current_time = Time.monotonic
+    current_time = Time.instant
     window_duration = (current_time - @window_start).total_seconds
 
     # Reset window if it's been more than 1 second
@@ -260,8 +260,8 @@ class UploadIO < IO
     @offset = 0
     @uploaded = 0
     @rewound = true
-    @last_read_time = Time.monotonic
+    @last_read_time = Time.instant
     @bytes_in_window = 0
-    @window_start = Time.monotonic
+    @window_start = Time.instant
   end
 end

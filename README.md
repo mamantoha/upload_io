@@ -43,24 +43,24 @@ require "http/client"
 file = File.open("/path/to/file")
 size = file.size
 uploaded_total = 0
-start_time = Time.monotonic
+start_time = Time.instant
 
 upload_io = UploadIO.new(file, 4096)
 
 # Progress tracking callback
 upload_io.on_progress ->(uploaded_chunk : Int32) do
   uploaded_total += uploaded_chunk
-  elapsed_time = (Time.monotonic - start_time).total_seconds
+  elapsed_time = (Time.instant - start_time).total_seconds
   percentage = (uploaded_total * 100.0 / size).round(2)
   puts "Uploaded: #{uploaded_total} / #{size} bytes (#{percentage}%) in #{elapsed_time.round(2)}s"
 end
 
 # Using should_cancel callback to stop upload after 5 seconds
-upload_io.should_cancel ->{ (Time.monotonic - start_time).total_seconds > 5 }
+upload_io.should_cancel ->{ (Time.instant - start_time).total_seconds > 5 }
 
 response = HTTP::Client.post("http://example.com/upload", body: upload_io)
 
-total_time = (Time.monotonic - start_time).total_seconds
+total_time = (Time.instant - start_time).total_seconds
 puts "Upload complete! Response: #{response.status_code} in #{total_time.round(2)} seconds"
 ```
 
@@ -87,13 +87,13 @@ require "http/client"
 file = File.open("/path/to/file")
 size = file.size
 uploaded_total = 0
-start_time = Time.monotonic
+start_time = Time.instant
 
 # Progress tracking callback with speed display
 progress_tracker = ->(uploaded_chunk : Int32) do
   uploaded_total += uploaded_chunk
   timestamp = Time.local
-  current_time = Time.monotonic
+  current_time = Time.instant
 
   # Calculate average speed
   total_time = (current_time - start_time).total_seconds

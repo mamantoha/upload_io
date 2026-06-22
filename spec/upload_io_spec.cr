@@ -303,14 +303,14 @@ describe UploadIO do
 
       # Read all data and measure time
       buffer = Bytes.new(4096)
-      start_time = Time.monotonic
+      start_time = Time.instant
       total_read = 0
 
       while (read = upload_io.read(buffer)) > 0
         total_read += read
       end
 
-      elapsed_time = (Time.monotonic - start_time).total_seconds
+      elapsed_time = (Time.instant - start_time).total_seconds
       actual_speed = total_read / elapsed_time
 
       # Verify actual speed is within 15% of max speed
