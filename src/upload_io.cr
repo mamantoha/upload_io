@@ -61,6 +61,7 @@ class UploadIO < IO
   )
     super()
 
+    validate_chunk_size(@chunk_size)
     validate_max_speed(@max_speed)
 
     @is_io = false
@@ -185,6 +186,10 @@ class UploadIO < IO
   # - Subsequent reads will continue from where they left off
   def resume
     @paused = false
+  end
+
+  private def validate_chunk_size(chunk_size : Int32) : Nil
+    raise ArgumentError.new("chunk_size must be positive") if chunk_size <= 0
   end
 
   private def validate_max_speed(max_speed : Int64?) : Nil

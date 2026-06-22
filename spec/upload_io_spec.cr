@@ -67,6 +67,18 @@ describe UploadIO do
     upload_io.uploaded.should eq 0
   end
 
+  it "rejects zero chunk size" do
+    expect_raises ArgumentError, "chunk_size must be positive" do
+      UploadIO.new(Bytes.new(0), 0)
+    end
+  end
+
+  it "rejects negative chunk size" do
+    expect_raises ArgumentError, "chunk_size must be positive" do
+      UploadIO.new(Bytes.new(0), -1)
+    end
+  end
+
   describe "#rewind" do
     it "rewinds Bytes data" do
       data = "Hello".to_slice
