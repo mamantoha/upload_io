@@ -8,6 +8,7 @@
 
 `UploadIO` instances can be used directly as the request body in `HTTP::Client` requests.
 Since it implements the `IO` interface, `HTTP::Client` can read from it just like any other `IO` object.
+The configured chunk size controls reads from `Bytes` and `String` data. Wrapped `IO` sources are read directly into the caller's buffer, so their read size is controlled by that buffer.
 
 Features:
 

@@ -47,7 +47,7 @@ class UploadIO < IO
   # Creates a new `UploadIO` with given arguments.
   #
   # - `data` - the upload data source
-  # - `chunk_size` - the size of each chunk to be read
+  # - `chunk_size` - the maximum size of each chunk for `Bytes` and `String` data
   # - `on_progress` - optional callback to track progress
   # - `should_cancel` - optional callback to control upload cancellation
   # - `max_speed` - optional maximum upload speed in bytes per second
@@ -224,7 +224,9 @@ class UploadIO < IO
   # Reads the next chunk of data and copies it into the provided buffer.
   #
   # This method is called automatically by `HTTP::Client` when sending data.
-  # It reads up to `chunk_size` bytes and updates the upload progress.
+  # It reads up to `chunk_size` bytes for `Bytes` and `String` data.
+  # Wrapped `IO` sources are read directly into the provided buffer, so their
+  # read size is controlled by the caller's buffer size.
   #
   # Returns the number of bytes that will be sent to the server (not the total send bytes),
   # which is 0 if and only if there is no more data to reads
