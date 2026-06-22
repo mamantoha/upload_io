@@ -56,7 +56,7 @@ describe UploadIO do
     end
 
     upload_io.uploaded.should eq io.to_s.bytesize
-    chunks.should eq [8, 8, 8, 0]
+    chunks.should eq [8, 8, 8]
   end
 
   it "handles Nil input gracefully" do

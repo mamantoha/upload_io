@@ -239,6 +239,8 @@ class UploadIO < IO
       @offset += bytes_to_send
     end
 
+    return 0 if bytes_to_send == 0
+
     @uploaded += bytes_to_send
 
     @on_progress.try &.call(bytes_to_send)
