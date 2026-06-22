@@ -67,6 +67,58 @@ describe UploadIO do
     upload_io.uploaded.should eq 0
   end
 
+  describe "#rewind" do
+    it "rewinds Bytes data" do
+      data = "Hello".to_slice
+      upload_io = UploadIO.new(data, 5)
+      buffer = Bytes.new(5)
+
+      upload_io.read(buffer).should eq 5
+      String.new(buffer).should eq "Hello"
+      upload_io.uploaded.should eq 5
+
+      upload_io.rewind
+      upload_io.uploaded.should eq 0
+
+      upload_io.read(buffer).should eq 5
+      String.new(buffer).should eq "Hello"
+      upload_io.uploaded.should eq 5
+    end
+
+    it "rewinds String data" do
+      upload_io = UploadIO.new("Hello", 5)
+      buffer = Bytes.new(5)
+
+      upload_io.read(buffer).should eq 5
+      String.new(buffer).should eq "Hello"
+      upload_io.uploaded.should eq 5
+
+      upload_io.rewind
+      upload_io.uploaded.should eq 0
+
+      upload_io.read(buffer).should eq 5
+      String.new(buffer).should eq "Hello"
+      upload_io.uploaded.should eq 5
+    end
+
+    it "rewinds IO data" do
+      io = IO::Memory.new("Hello")
+      upload_io = UploadIO.new(io, 5)
+      buffer = Bytes.new(5)
+
+      upload_io.read(buffer).should eq 5
+      String.new(buffer).should eq "Hello"
+      upload_io.uploaded.should eq 5
+
+      upload_io.rewind
+      upload_io.uploaded.should eq 0
+
+      upload_io.read(buffer).should eq 5
+      String.new(buffer).should eq "Hello"
+      upload_io.uploaded.should eq 5
+    end
+  end
+
   it "triggers on_progress callback correctly" do
     data = Bytes.new(1024) { 1_u8 }
     calls = [] of Int32
