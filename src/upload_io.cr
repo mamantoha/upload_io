@@ -66,10 +66,8 @@ class UploadIO < IO
 
     @is_io = false
     @size = 0
-    @rewound = false
     @cancelled = false
     @paused = false
-    @last_read_time = Time.instant
     @bytes_in_window = 0_i64
     @window_start = Time.instant
 
@@ -288,7 +286,6 @@ class UploadIO < IO
     end
 
     @uploaded = 0
-    @last_read_time = Time.instant
     @bytes_in_window = 0
     @window_start = Time.instant
   end
